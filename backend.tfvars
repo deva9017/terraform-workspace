@@ -1,4 +1,4 @@
 bucket         = "my-terraform-states-158"
-region         = "us-east-1"
+region         = "ap-south-1"
 dynamodb_table = "terraform-locks"
 encrypt        = true
