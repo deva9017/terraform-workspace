@@ -16,38 +16,38 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Reference GitHub secret for AWS Access Key ID
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Reference GitHub secret for AWS Secret Access Key
+        aws-region: ap-soth-1  # Set the correct AWS region for your resources
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: 1.5.5
 
-    - name: Terraform Init
-      run: terraform init
-
     - name: Set Workspace Based on Branch
-      env:
-        BRANCH: ${{ github.ref_name }}
+      id: set-workspace
       run: |
-        if [ "$BRANCH" == "main" ]; then
-          WORKSPACE="production"
-        elif [ "$BRANCH" == "staging" ]; then
-          WORKSPACE="staging"
-        elif [ "$BRANCH" == "development" ]; then
-          WORKSPACE="development"
+        if [ "${{ github.ref_name }}" == "main" ]; then
+          terraform workspace select production || terraform workspace new production
+        elif [ "${{ github.ref_name }}" == "staging" ]; then
+          terraform workspace select staging || terraform workspace new staging
+        elif [ "${{ github.ref_name }}" == "development" ]; then
+          terraform workspace select development || terraform workspace new development
         else
           echo "Unsupported branch, exiting."
           exit 1
         fi
-        echo "Switching to workspace $WORKSPACE"
-        terraform workspace select $WORKSPACE || terraform workspace new $WORKSPACE
+
+    - name: Terraform Init
+      run: terraform init
 
     - name: Terraform Plan
       run: terraform plan -out=tfplan
-      env:
-        TF_WORKSPACE: ${{ github.ref_name }}
 
     - name: Terraform Apply
       if: github.ref_name != 'main'
       run: terraform apply tfplan
-      env:
-        TF_WORKSPACE: ${{ github.ref_name }}
