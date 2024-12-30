@@ -3,7 +3,7 @@ terraform {
   backend "s3" {
     bucket         = "my-terraform-states-158" # Single S3 bucket for all workspaces
     key            = "terraform/terraform.tfstate"
-    region         = "us-east-1"
+    region         = "ap-south-1"
     dynamodb_table = "terraform-locks"
     encrypt        = true
   }
