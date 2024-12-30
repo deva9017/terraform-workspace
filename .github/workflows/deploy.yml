@@ -21,7 +21,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Reference GitHub secret for AWS Access Key ID
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Reference GitHub secret for AWS Secret Access Key
-        aws-region: ap-soth-1  # Set the correct AWS region for your resources
+        aws-region: ap-south-1  # Set the correct AWS region for your resources
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
