@@ -1,0 +1,53 @@
+name: Terraform CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - development
+      - staging
+
+jobs:
+  terraform:
+    name: Terraform Workflow
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.5
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Set Workspace Based on Branch
+      env:
+        BRANCH: ${{ github.ref_name }}
+      run: |
+        if [ "$BRANCH" == "main" ]; then
+          WORKSPACE="production"
+        elif [ "$BRANCH" == "staging" ]; then
+          WORKSPACE="staging"
+        elif [ "$BRANCH" == "development" ]; then
+          WORKSPACE="development"
+        else
+          echo "Unsupported branch, exiting."
+          exit 1
+        fi
+        echo "Switching to workspace $WORKSPACE"
+        terraform workspace select $WORKSPACE || terraform workspace new $WORKSPACE
+
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
+      env:
+        TF_WORKSPACE: ${{ github.ref_name }}
+
+    - name: Terraform Apply
+      if: github.ref_name != 'main'
+      run: terraform apply tfplan
+      env:
+        TF_WORKSPACE: ${{ github.ref_name }}
